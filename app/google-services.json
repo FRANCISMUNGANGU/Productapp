@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "829080613600",
+    "project_id": "buy-ingredients",
+    "storage_bucket": "buy-ingredients.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:829080613600:android:7e908fb3cd3509e8d2d685",
+        "android_client_info": {
+          "package_name": "com.example.buy_ingredients"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "829080613600-0lv31jcneojdv388cj8sldck12rj2sm4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBkrKPXjdH5Hoh4BRXp-W0QRe1lSCTJaGk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "829080613600-0lv31jcneojdv388cj8sldck12rj2sm4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Buy-ingredients</string>
+    <string name="title_activity_vendor_dashboard">VendorDashboard</string>
+</resources>
