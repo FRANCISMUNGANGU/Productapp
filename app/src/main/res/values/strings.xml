@@ -1,4 +1,7 @@
 <resources>
     <string name="app_name">Buy-ingredients</string>
     <string name="title_activity_vendor_dashboard">VendorDashboard</string>
+    <string name="title_activity_view_inventory">ViewInventory</string>
+    <string name="title_activity_splash_screen">Buy Ingredients</string>
+    <string name="title_activity_customerdashboard">Customerdashboard</string>
 </resources>
