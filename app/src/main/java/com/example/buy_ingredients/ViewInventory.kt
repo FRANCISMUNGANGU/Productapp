@@ -13,19 +13,17 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextStyle
@@ -33,15 +31,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import coil.compose.rememberImagePainter
 import com.example.buy_ingredients.favorites.FavoriteDAO
 import com.example.buy_ingredients.favorites.Favourites
@@ -68,33 +65,6 @@ class ViewInventory : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            val navController = rememberNavController()
-            NavHost(navController, startDestination = "home") {
-                composable("home") {
-                    ListOfProducts(onDetailsClick = {
-                            id -> navController.navigate("details/id=$id?name=hi")
-                    }, context = LocalContext.current, favouritesDatabase = favouritesDatabase, lifecycleScope = lifecycleScope, IngredientList = SnapshotStateList<IngredientsObj?>())
-                }
-                composable("details/id={id}?name={name}",
-                    arguments = listOf(
-                        navArgument("id"){
-                            type = NavType.LongType
-                        },
-                        navArgument("name"){
-                            type = NavType.StringType
-                            nullable = true
-                        }),
-                ){
-                    //inside this composable , I can pick the shared details
-                    val arguments = requireNotNull(it.arguments)
-                    val id = arguments.getLong("id")
-                    val name = arguments.getString("name")
-
-                    DetailsCard(id, name, onNavigateUp = {
-                        navController.popBackStack()
-                    }, ingredient = IngredientsObj())
-                }
-            }
             com.example.buy_ingredients.ui.theme.BuyingredientsTheme() {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
@@ -213,7 +183,7 @@ fun ListOfProducts(
                             // !! this is called the safe call operator
                             // its use here is to unwrap the opting String? value from product list.
                             IngredientCard(ingredient = ingredient!!, context,lifecycleScope,favouritesDatabase, onClick =
-                            {onDetailsClick})
+                            {})
                             //,//lifecycleScope,favouritesDatabase
                         }
                     }
@@ -237,6 +207,12 @@ fun IngredientCard(
     favouritesDatabase: FavoriteDAO,
     onClick : () -> Unit
 ) {
+    val showDialog = remember {
+        mutableStateOf(false)
+    }
+    val onClick = {
+        showDialog.value = true
+    }
     Card(
         modifier = Modifier
             .padding(8.dp)
@@ -265,12 +241,13 @@ fun IngredientCard(
             )
             Text(text = "Seller Contact: ${ingredient.contactPhone}")
             Text(text = "Seller Price: ${ingredient.ingredientPrice}")
+            DetailsCard(showDialog = showDialog.value, onDismiss = {showDialog.value = false}, ingredient = ingredient, lifecycleScope = lifecycleScope, favouritesDatabase = favouritesDatabase)
             Spacer(modifier = Modifier.height(5.dp))
             var isLoading by remember {
                 mutableStateOf(false)
             }
             Row() {
-                Button(onClick = {
+                IconButton(onClick = {
                     isLoading = true
                     // get the current time and date
                     val newFavoriteAdded  = Date()
@@ -288,60 +265,12 @@ fun IngredientCard(
                         LoadingProgress()
 //                        CircularProgressIndicator()
                     } else {
-                        Text(text = "Add to Favourites", modifier = Modifier.padding(5.dp))
+                        Icon(Icons.Rounded.Favorite, contentDescription = "like", modifier = Modifier.padding(20.dp))
                     }
 
                 }
 
 
-            }
-        }
-    }
-}
-@Composable
-fun DetailsCard(id: Long, name: String?, onNavigateUp: () -> Unit,ingredient: IngredientsObj) {
-    val scrollState = rememberScrollState()
-    Scaffold {
-        Column(Modifier.padding(it)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(vertical = 10.dp),
-            ) {
-                IconButton(onClick = onNavigateUp) {
-                    Icon(Icons.Rounded.ArrowBack, contentDescription = "Go Back")
-                }
-            }
-        }
-        Column(modifier = Modifier.verticalScroll(state = scrollState)) {
-
-
-            Image(
-                painter = rememberImagePainter(data = ingredient.ingredientImage), contentDescription = null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(16f / 9f), contentScale = ContentScale.Crop
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            Column(
-                Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 16.dp)
-            ) {
-                Text(
-                    modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.body1, text = ingredient.ingredientName
-                )
-                Text(
-                    modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.body1, text = ingredient.ingredientPrice
-                )
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Spacer(modifier = Modifier.height(20.dp))
-                Text(
-                    modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.body1, text = ingredient.contactPhone
-                )
             }
         }
     }
@@ -480,5 +409,119 @@ fun Navigate(navController : NavHostController,favouritesDatabase: FavoriteDAO, 
         composable(NavigationItem.VendorInventory.route) {
             }
 
+    }
+}
+
+
+@Composable
+fun DetailsCard(
+    lifecycleScope: LifecycleCoroutineScope,
+    favouritesDatabase: FavoriteDAO,
+    showDialog: Boolean,
+    onDismiss: () -> Unit,
+    ingredient: IngredientsObj
+) {
+    if (showDialog) {
+        Dialog(
+            onDismissRequest = { onDismiss() }
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(Color.White)
+                    .padding(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .align(Alignment.CenterHorizontally)
+                    ) {
+                        if (ingredient != null) {
+                            Image(
+                                painter = rememberImagePainter(data = ingredient.ingredientImage),
+                                contentDescription = "Goods Photo",
+                                modifier = Modifier
+                                    .size(300.dp)
+                                    .clip(CircleShape)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+
+                    LazyColumn(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                    ) {
+
+                        item {
+                            if (ingredient != null) {
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp),
+                                    elevation = 4.dp
+                                ) {
+                                    Column() {
+                                        Text(text = "Ingredient name : ${ingredient.ingredientName}",
+                                             modifier = Modifier.padding(16.dp))
+                                        Text(
+                                            text = "Phone Number: ${ingredient.contactPhone}",
+                                            modifier = Modifier.padding(16.dp)
+                                        )
+                                        Text(
+                                            text = "Price: ${ingredient.ingredientPrice}",
+                                            modifier = Modifier.padding(16.dp)
+                                        )
+                                    }
+
+                                }
+                            }
+                            var isLoading by remember {
+                                mutableStateOf(false)
+                            }
+                            Row() {
+                                IconButton(onClick = {
+                                    isLoading = true
+                                    // get the current time and date
+                                    val newFavoriteAdded  = Date()
+                                    // add product to favourite
+                                    val newFavorites = Favourites(ingredient.ingredientId,ingredient.ingredientName,ingredient.contactPhone,ingredient.ingredientImage
+                                        ,ingredient.ingredientPrice,newFavoriteAdded)
+                                    // adding the product to the room db
+                                    lifecycleScope.launch{
+                                        favouritesDatabase.addFavorites(newFavorites)
+                                        delay(3000)
+                                        isLoading = false
+                                    }
+                                }) {
+                                    if (isLoading){
+                                        LoadingProgress()
+//                        CircularProgressIndicator()
+                                    } else {
+                                        Icon(Icons.Rounded.Favorite, contentDescription = "like", modifier = Modifier.padding(20.dp))
+                                    }
+
+                                }
+
+
+                            }
+
+                        }
+
+
+                    }
+
+                }
+            }
+        }
     }
 }

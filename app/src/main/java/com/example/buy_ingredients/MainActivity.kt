@@ -8,19 +8,18 @@ import android.text.TextUtils
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.TopAppBar
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -94,11 +93,12 @@ fun AuthenticationUi(context: Context) {
         modifier = Modifier
             .fillMaxWidth()
             .fillMaxHeight()
-            .background(Color.White),
+            .background(Color.Black),
         verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally
     )
     {
-        TextField(
+        Image(painter = painterResource(id = R.drawable.splash), contentDescription = "Logo")
+        OutlinedTextField(
             value = phoneNumber.value,
             onValueChange = { phoneNumber.value = it },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -106,22 +106,27 @@ fun AuthenticationUi(context: Context) {
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),
-            textStyle = TextStyle(color = Color.Black, fontSize = 15.sp),
+            textStyle = TextStyle(color = Color.White, fontSize = 15.sp),
             singleLine = true
         )
         Spacer(modifier = Modifier.height(10.dp))
         //button to generate otp
+        var isLoading by remember {
+            mutableStateOf(false)
+        }
         Button(onClick = {
             // check if phone number filled is empty
             if (TextUtils.isEmpty(phoneNumber.value.toString())) {
                 Toast.makeText(context, "Phone number cannot be empty", Toast.LENGTH_SHORT).show()
             } else {
+
                 //countrycode
                 val number = "+254${phoneNumber.value}"
                 sendverificationcode(number, mAuth, context as Activity, callback)
+                isLoading = true
             }
-        }) {
-            Text(text = "Get OTP", modifier = Modifier.padding(8.dp))
+        },colors = ButtonDefaults.buttonColors(Color.Green)) {
+                Text(text = "Get OTP", modifier = Modifier.padding(8.dp))
         }
         Spacer(modifier = Modifier.height(10.dp))
         // OTP FIELDS
@@ -129,12 +134,12 @@ fun AuthenticationUi(context: Context) {
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
-                .background(Color.White),
+                .background(Color.Black),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         )
         {
-            TextField(
+            OutlinedTextField(
                 value = otp.value,
                 onValueChange = { otp.value = it },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
@@ -142,7 +147,7 @@ fun AuthenticationUi(context: Context) {
                 modifier = Modifier
                     .padding(16.dp)
                     .fillMaxWidth(),
-                textStyle = TextStyle(color = Color.Black, fontSize = 15.sp),
+                textStyle = TextStyle(color = Color.White, fontSize = 15.sp),
                 singleLine = true
             )
             Spacer(modifier = Modifier.height(10.dp))
@@ -154,8 +159,9 @@ fun AuthenticationUi(context: Context) {
                 } else {
                     val credential: PhoneAuthCredential = PhoneAuthProvider.getCredential(verificationID.value, otp.value)
                     signInWithPhoneAuthCredentials(credential,mAuth,context as Activity, context, message)
+                    isLoading = true
                 }
-            }) {
+            }, colors = ButtonDefaults.buttonColors(Color.Green)) {
                 Text(text = "Verify OTP", modifier = Modifier.padding(8.dp))
             }
             Spacer(modifier = Modifier.height(5.dp))
@@ -163,7 +169,7 @@ fun AuthenticationUi(context: Context) {
             Text(
                 text = message.value,
                 style = TextStyle(
-                    color = Color.Black,
+                    color = Color.White,
                     fontSize = 15.sp,
                     fontWeight = FontWeight.Bold
                 )

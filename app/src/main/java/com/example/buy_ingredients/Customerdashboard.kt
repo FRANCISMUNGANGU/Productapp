@@ -8,13 +8,18 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -26,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.lifecycle.lifecycleScope
 import coil.compose.rememberImagePainter
@@ -197,13 +203,21 @@ fun IngredientCard(
     ingredient: IngredientsObj,
     context: Context,
     lifecycleScope: LifecycleCoroutineScope,
-    favouritesDatabase: FavoriteDAO
+    favouritesDatabase: FavoriteDAO,
+
 ) {
+    val showDialog = remember {
+        mutableStateOf(false)
+    }
+    val onClick = {
+        showDialog.value = true
+    }
     Card(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxWidth(),
-        elevation = 4.dp
+        elevation = 4.dp,
+        onClick = onClick
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -226,12 +240,13 @@ fun IngredientCard(
             )
             Text(text = "Seller Contact: ${ingredient.contactPhone}")
             Text(text = "Seller Price: ${ingredient.ingredientPrice}")
+            detailsCard(showDialog = showDialog.value, onDismiss = {showDialog.value = false}, ingredient = ingredient, context = LocalContext.current, lifecycleScope = lifecycleScope, favouritesDatabase = favouritesDatabase)
             Spacer(modifier = Modifier.height(5.dp))
             var isLoading by remember {
                 mutableStateOf(false)
             }
             Row() {
-                Button(onClick = {
+                IconButton(onClick = {
                     isLoading = true
                     // get the current time and date
                     val newFavoriteAdded  = Date()
@@ -249,7 +264,8 @@ fun IngredientCard(
                         LoadingProgress()
 //                        CircularProgressIndicator()
                     } else {
-                        Text(text = "Add to Favourites")
+                        Icon(Icons.Rounded.Favorite, contentDescription = "like", modifier = Modifier.padding(20.dp))
+                    }
                     }}
                     Spacer(modifier = Modifier.padding(10.dp))
                     Row() {
@@ -286,4 +302,148 @@ fun IngredientCard(
 
     }
 }
+
+@Composable
+fun detailsCard(
+    lifecycleScope: LifecycleCoroutineScope,
+    favouritesDatabase: FavoriteDAO,
+    context : Context,
+    showDialog: Boolean,
+    onDismiss: () -> Unit,
+    ingredient: IngredientsObj
+) {
+    if (showDialog) {
+        Dialog(
+            onDismissRequest = { onDismiss() }
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(Color.White)
+                    .padding(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .align(Alignment.CenterHorizontally)
+                    ) {
+                        if (ingredient != null) {
+                            Image(
+                                painter = rememberImagePainter(data = ingredient.ingredientImage),
+                                contentDescription = "Goods Photo",
+                                modifier = Modifier
+                                    .size(300.dp)
+                                    .clip(CircleShape)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    LazyColumn(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                    ) {
+
+                        item {
+                            if (ingredient != null) {
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp),
+                                    elevation = 4.dp
+                                ) {
+                                    Column() {
+                                        Text(
+                                            text = "Phone Number: ${ingredient.ingredientName}",
+                                            modifier = Modifier.padding(16.dp)
+                                        )
+                                        Text(
+                                            text = "Phone Number: ${ingredient.contactPhone}",
+                                            modifier = Modifier.padding(16.dp)
+                                        )
+                                        Text(
+                                            text = "Price: ${ingredient.ingredientPrice}",
+                                            modifier = Modifier.padding(16.dp)
+                                        )
+                                    }
+
+                                }
+                            }
+                            //like
+                            var isLoading by remember {
+                                mutableStateOf(false)
+                            }
+                            Row() {
+                                IconButton(onClick = {
+                                    isLoading = true
+                                    // get the current time and date
+                                    val newFavoriteAdded  = Date()
+                                    // add product to favourite
+                                    val newFavorites = Favourites(ingredient.ingredientId,ingredient.ingredientName,ingredient.contactPhone,ingredient.ingredientImage
+                                        ,ingredient.ingredientPrice,newFavoriteAdded)
+                                    // adding the product to the room db
+                                    lifecycleScope.launch{
+                                        favouritesDatabase.addFavorites(newFavorites)
+                                        delay(3000)
+                                        isLoading = false
+                                    }
+                                }) {
+                                    if (isLoading){
+                                        LoadingProgress()
+//                        CircularProgressIndicator()
+                                    } else {
+                                        Icon(Icons.Rounded.Favorite, contentDescription = "like", modifier = Modifier.padding(20.dp))
+                                    }
+
+                                }
+
+
+                            }
+                            Row() {
+                                Button(onClick = {
+                                    isLoading = true
+                                    // get the current time and date
+                                    val newFavoriteAdded = Date()
+                                    // add product to favourite
+                                    val newFavorites = Favourites(
+                                        ingredient.ingredientId,
+                                        ingredient.ingredientName,
+                                        ingredient.contactPhone,
+                                        ingredient.ingredientImage,
+                                        ingredient.ingredientPrice,
+                                        newFavoriteAdded
+                                    )
+
+                                    simulateCheckout(context, ingredient)
+                                    isLoading = false
+
+                                }) {
+                                    if (isLoading) {
+                                        LoadingProgress()
+//                        CircularProgressIndicator()
+                                    } else {
+                                        Text(text = "Checkout")
+                                    }
+
+                                }
+
+
+                            }
+                        }
+
+
+                    }
+
+                }
+            }
+        }
+    }
 }
