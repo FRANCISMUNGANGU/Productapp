@@ -362,11 +362,11 @@ fun detailsCard(
                                 ) {
                                     Column() {
                                         Text(
-                                            text = "Phone Number: ${ingredient.ingredientName}",
+                                            text = "Ingredient Name: ${ingredient.ingredientName}",
                                             modifier = Modifier.padding(16.dp)
                                         )
                                         Text(
-                                            text = "Phone Number: ${ingredient.contactPhone}",
+                                            text = "Vendor Phone Number: ${ingredient.contactPhone}",
                                             modifier = Modifier.padding(16.dp)
                                         )
                                         Text(
