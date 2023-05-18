@@ -377,6 +377,22 @@ fun detailsCard(
 
                                 }
                             }
+                            //method
+                            if (ingredient != null) {
+                                Card(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 8.dp),
+                                    elevation = 4.dp
+                                ) {
+                                    Column() {
+                                        Text(text = "Preparation method : " +
+                                                " ${ingredient.ingredientMethod}",
+                                            modifier = Modifier.padding(16.dp))
+                                    }
+
+                                }
+                            }
                             //like
                             var isLoading by remember {
                                 mutableStateOf(false)

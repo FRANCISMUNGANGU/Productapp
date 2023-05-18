@@ -5,9 +5,10 @@ data class  IngredientsObj (
     var ingredientName:String,
     var contactPhone:String,
     var ingredientImage:String,
-    var ingredientPrice:String
+    var ingredientPrice:String,
+    var ingredientMethod:String
 )
 {
-    constructor() : this("","","","","")
+    constructor() : this("","","","","","")
 }
 

@@ -43,6 +43,7 @@ import com.google.firebase.database.*
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.ktx.storage
+import kotlinx.coroutines.delay
 
 class VendorDashboard : ComponentActivity() {
     private lateinit var storageReference : StorageReference
@@ -94,7 +95,7 @@ fun ProductForm(
     val productname = remember{ mutableStateOf(TextFieldValue()) }
     val productcontact = remember{ mutableStateOf(TextFieldValue()) }
     val productprice = remember{ mutableStateOf(TextFieldValue()) }
-    val productDescription = remember { mutableStateOf(TextFieldValue()) }
+    val productPreparation = remember { mutableStateOf(TextFieldValue()) }
     // composable set of textfields for users to add details
     Column(modifier = Modifier
         .fillMaxHeight()
@@ -121,6 +122,12 @@ fun ProductForm(
             textStyle = TextStyle(color = Color.Black, fontSize = 15.sp), singleLine = true
         )
         Spacer(modifier = Modifier.height(5.dp))
+        TextField(value = productPreparation.value, onValueChange = {productPreparation.value = it},
+            placeholder = { Text(text = "Enter  preparation method")}, modifier = Modifier
+                .padding(10.dp)
+                .fillMaxWidth(),
+            textStyle = TextStyle(color = Color.Black, fontSize = 15.sp), singleLine = true
+        )
 
         // Button action to select an image from my phone gallery
         // 1. A state to hold our upload value
@@ -149,8 +156,12 @@ fun ProductForm(
         )
 
         Spacer(modifier = Modifier.height(10.dp))
+        var isLoading by remember {
+            mutableStateOf(false)
+        }
 
         Button(onClick = {
+            isLoading = true
 //            push our data to the realtime database
 //   first we send the image/file to the storage bucket
             selectedUri.value?.let{
@@ -168,7 +179,7 @@ fun ProductForm(
                         val productObj = productId?.let {
                             IngredientsObj(
                                 it,productname.value.text,productcontact.value.text,imagePath,
-                                productprice.value.text)
+                                productprice.value.text,productPreparation.value.text)
                         }
 
                         // we use a class in firebase called the addValueEventListener
@@ -188,6 +199,7 @@ fun ProductForm(
                         })
                     }
                 }
+                isLoading = false
             }
 
 
@@ -195,8 +207,12 @@ fun ProductForm(
         }, modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp), enabled = selectedUri.value != null) {
+            if(isLoading){
+                LoadingProgress()
+            }else{
+                Text(text = "Add Product Details", modifier = Modifier.padding(5.dp))
+            }
 
-            Text(text = "Add Product Details", modifier = Modifier.padding(5.dp))
         }
 
         Spacer(modifier = Modifier.height(10.dp))

@@ -119,11 +119,11 @@ fun AuthenticationUi(context: Context) {
             if (TextUtils.isEmpty(phoneNumber.value.toString())) {
                 Toast.makeText(context, "Phone number cannot be empty", Toast.LENGTH_SHORT).show()
             } else {
-
+                isLoading = true
                 //countrycode
                 val number = "+254${phoneNumber.value}"
                 sendverificationcode(number, mAuth, context as Activity, callback)
-                isLoading = true
+
             }
         },colors = ButtonDefaults.buttonColors(Color.Green)) {
                 Text(text = "Get OTP", modifier = Modifier.padding(8.dp))
